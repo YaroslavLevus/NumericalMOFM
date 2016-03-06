@@ -8,11 +8,12 @@ namespace FiniteElements
 {
     class Solver
     {
-
         public int n { get; }
 
         public Problem p { get; private set; }
         public Solution s { get; private set; }
+
+        public Vector X { get; private set; }
 
         public Matrix GlobalMatrix { get; private set; }
         Matrix GlobalVector;
@@ -31,7 +32,7 @@ namespace FiniteElements
             return 1;
         }
 
-        double CompositeSimpsonIntegral(Delegate baseFunc, double koef)
+        double CompositeSimpsonIntegral(Func<double, double, double> baseFunc, double koef)
         {
 
             return 0;

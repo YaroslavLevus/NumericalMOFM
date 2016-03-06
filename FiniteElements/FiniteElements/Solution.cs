@@ -3,11 +3,22 @@ namespace FiniteElements
 {
     class Solution
     {
-        public Matrix X { get; private set; }
+        public Matrix U { get; private set; }
+        public Vector X { get; private set; }
 
-        public Solution(Matrix x)
+        public Solution(double a, double b, int n)
         {
-            X = x;
+            GenerateDivision(a, b, n);
+        }
+
+        void GenerateDivision(double a, double b, int n)
+        {
+
+        }
+
+        void FormSolution(Vector uVector)
+        {
+
         }
     }
 }

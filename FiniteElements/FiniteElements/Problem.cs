@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FiniteElements
 {
     class Problem
     {
-        public int s { get; }
+        public int s { get; private set; }
 
-        public double a { get; }
-        public double b { get; }
+        public double a { get; private set; }
+        public double b { get; private set; }
 
-        public Matrix u_a { get; }
-        public Matrix u_b { get; }
+        public Vector u_a { get; private set; }
+        public Vector u_b { get; private set; }
 
-        public Matrix P { get; }
-        public Matrix Q { get; }
-        public Matrix f { get; }
+        public Matrix P { get; private set; }
+        public Matrix Q { get; private set; }
+
+        public Vector f { get; private set; }
 
         public Problem()
         {

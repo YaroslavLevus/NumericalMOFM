@@ -12,6 +12,8 @@ namespace FiniteElements
 {
     public partial class Form1 : Form
     {
+        Solver solver;
+
         public Form1()
         {
             InitializeComponent();
@@ -33,22 +35,27 @@ namespace FiniteElements
 
         }
 
+        void ReadInputData(Solver s)
+        {
+
+        }
+
         // on text changed generate empty grids
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
 
         }
 
-        // clear all results computed and create the problem. if input data is not correct show the message what's wrong
+        // clear all results computed, read data and create the problem. if input data is not correct show the message what's wrong
         private void button1_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void label12_Click(object sender, EventArgs e)
+        // compute and show appropriate local matrices
+        private void button2_Click(object sender, EventArgs e)
         {
 
         }
-        
     }
 }

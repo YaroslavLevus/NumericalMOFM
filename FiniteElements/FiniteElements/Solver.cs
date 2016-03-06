@@ -16,10 +16,25 @@ namespace FiniteElements
 
         public Matrix GlobalMatrix { get; private set; }
         Matrix GlobalVector;
-
+        
         public Solver()
         {
 
+        }
+
+        double baseFunction(double x, double x1, double x2)
+        {
+            return (x - x1) * (x - x2);
+        }
+        double baseFunctionFake(double x, double x1, double x2)
+        {
+            return 1;
+        }
+
+        double CompositeSimpsonIntegral(Delegate baseFunc, double koef)
+        {
+
+            return 0;
         }
                 
         public Matrix GetLocalStiffnessMatrix(int k)
@@ -32,16 +47,15 @@ namespace FiniteElements
         {
 
             return null;
-        }
-
-        public void FillSystem()
-        {
-
-        }
+        }        
 
         public void FillGlobalMatrix()
         {
                         
+        }
+        public void FillSystem()
+        {
+
         }
 
         public void Solve()

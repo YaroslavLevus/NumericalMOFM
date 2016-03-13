@@ -8,8 +8,9 @@ namespace FiniteElements
 {
     class Solver
     {
-        public int n { get; }
-
+        public int n { get; set; }
+        public double h { get; private set; }
+        
         public Problem p { get; private set; }
         public Solution s { get; private set; }
 
@@ -22,32 +23,77 @@ namespace FiniteElements
         {
 
         }
-
-        double baseFunction(double x, double x1, double x2)
+        public Solver(int n, Problem p)
         {
-            return (x - x1) * (x - x2);
+            this.n = n;
+            this.p = p;
+
+            CreateDivision();
         }
-        double baseFunctionFake(double x, double x1, double x2)
+
+        public void CreateDivision()
+        {
+            double[] temp = new double[n + 1];
+
+            h = (p.b - p.a) / n;
+
+            temp[0] = p.a;
+            for (int i = 1; i < n; i++)
+            {
+                temp[i] = p.a + i * h;
+            }
+            temp[temp.Length - 1] = p.b;
+
+            X = new Vector(temp, n + 1);           
+        }
+
+        double baseFunction(double x, double x1)
+        {
+            return (x - x1) * (x - x1);
+        }
+        double baseFunctionFake(double x, double x1)
         {
             return 1;
         }
-
-        double CompositeSimpsonIntegral(Func<double, double, double> baseFunc, double koef)
-        {
-
-            return 0;
-        }
-                
+                        
         public Matrix GetLocalStiffnessMatrix(int k)
         {
+            Matrix m = new Matrix(2 * p.s, 2 * p.s);
+            double temp;
 
-            return null;
+            for (int i = 0; i < p.s; i++)
+            {
+                for (int j = 0; j < p.s; j++)
+                {
+                    temp = p.P[i, j] / h;
+                    // if P is not constant, but P(x)
+                    // temp = GaussIntegrator.Integrate(X[k-1], X[k], baseFunctionFake, P[i,j], X[k-1])/(h*h);
+                    m[i, j] = m[i + p.s, j + p.s] = temp;
+                    m[i, j + p.s] = m[i + p.s, j] = -temp;
+                }
+            }
+
+            return m;
         }
 
         public Matrix GetLocalWeightMatrix(int k)
         {
+            Matrix m = new Matrix(2 * p.s, 2 * p.s);
+            double temp;
 
-            return null;
+            for (int i = 0; i < p.s; i++)
+            {
+                for (int j = 0; j < p.s; j++)
+                {
+                    temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunction, X[k - 1]) * p.Q[i, j] / (h * h);
+                    // if Q is not constant, but Q(x)
+                    // temp = GaussIntegrator.Integrate(X[k-1], X[k], baseFunction, Q[i,j], X[k-1])/(h*h);
+                    m[i, j] = m[i + p.s, j + p.s] = temp;
+                    m[i, j + p.s] = m[i + p.s, j] = -temp;
+                }
+            }
+
+            return m;
         }        
 
         public void FillGlobalMatrix()

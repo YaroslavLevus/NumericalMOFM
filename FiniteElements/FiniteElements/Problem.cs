@@ -24,5 +24,21 @@ namespace FiniteElements
         {
 
         }
+
+        public Problem(int s, double a, double b, Vector u_a, Vector u_b, Matrix p, Matrix q, Vector f)
+        {
+            this.s = s;
+
+            this.a = a;
+            this.b = b;
+
+            this.u_a = u_a;
+            this.u_b = u_b;
+
+            P = p;
+            Q = q;
+
+            this.f = f;
+        }
     }
 }

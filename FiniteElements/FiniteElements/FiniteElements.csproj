@@ -52,6 +52,8 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="GaussIntegrator.cs" />
+    <Compile Include="GaussSlaeSolver.cs" />
     <Compile Include="Matrix.cs" />
     <Compile Include="Problem.cs" />
     <Compile Include="Program.cs" />

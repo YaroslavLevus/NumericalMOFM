@@ -15,13 +15,15 @@ namespace FiniteElements
 
         public Vector(int n)
         {
-            n = N;
+            N = n;
+
             vector = new double[N];
         }
 
         public Vector (double[] v, int n)
         {
             N = n;
+
             vector = v;
         }
 
@@ -36,6 +38,18 @@ namespace FiniteElements
                 vector[n] = value;
             }
         }
-        
+
+        public override string ToString()
+        {
+            string s = "";
+
+            for (int i = 0; i < N; i++)
+            {
+                s += this[i] + "   ";
+            }
+
+            return s;
+        }
+
     }
 }

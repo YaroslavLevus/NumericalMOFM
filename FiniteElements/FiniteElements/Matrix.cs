@@ -148,7 +148,7 @@ namespace FiniteElements
                 {
                     s += this[i, j] + "   ";
                 }
-                s += "\r\n";
+                s += ";\r\n";
             }
             return s;
         }

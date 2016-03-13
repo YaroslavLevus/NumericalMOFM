@@ -7,12 +7,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.CSharp;
+using System.CodeDom.Compiler;
+using System.Reflection;
 
 namespace FiniteElements
 {
     public partial class Form1 : Form
     {
         Solver solver;
+
+        #region function template
+        private static string begin = @"using System;
+namespace MyNamespace
+{
+    public delegate double Del(double x);
+    public static class LambdaCreator
+    {
+        public static Del Create()
+        {
+            return (x)=>";
+        private static string end = @";
+        }
+    }
+}";
+        #endregion
 
         public Form1()
         {
@@ -25,6 +44,28 @@ namespace FiniteElements
             GenerateGrid(1, dim, dataGridView3, 200);
             GenerateGrid(1, dim, dataGridView6, 75);
             GenerateGrid(1, dim, dataGridView7, 75);
+        }
+
+        void CreateSystem(string[,] funcs, ref Delegate[,] syst)
+        {
+            syst = new Delegate[funcs.GetLength(0),funcs.GetLength(1)];            
+
+            CSharpCodeProvider provider = new CSharpCodeProvider();
+            CompilerParameters parameters = new CompilerParameters();
+            parameters.GenerateInMemory = true;
+            parameters.ReferencedAssemblies.Add("System.dll");
+            CompilerResults results;
+            for (int i = 0; i < funcs.GetLength(0); i++)
+            {
+                for (int j = 0; j < funcs.GetLength(1); j++)
+                {
+                    results = provider.CompileAssemblyFromSource(parameters, begin + funcs[i, j] + end);
+                    var cls = results.CompiledAssembly.GetType("MyNamespace.LambdaCreator");
+                    var method = cls.GetMethod("Create", BindingFlags.Static | BindingFlags.Public);
+                    var del = (method.Invoke(null, null) as Delegate);
+                    syst[i, j] = del;
+                }
+            }
         }
 
         // generate grid dimX * DimY
@@ -117,13 +158,11 @@ namespace FiniteElements
         private void button1_Click(object sender, EventArgs e)
         {
             ReadInputData();
-
+            
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView4, 75, false);
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView5, 75, false);
 
             numericUpDown3.Maximum = solver.n;
-
-            //ClearForDimension();
         }
 
         // compute and show appropriate local matrices
@@ -173,7 +212,6 @@ namespace FiniteElements
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView5, 75, false);
 
             numericUpDown3.Maximum = solver.n;
-
 
             // in future: clear tabs "global matrix" and "solution"
         }

@@ -22,13 +22,13 @@ namespace FiniteElements
             (322 - 13 * Math.Sqrt(70)) / 900d
         };
 
-        public static double Integrate(double a, double b, Func<double, double, double> f, double x1)
+        public static double Integrate(double a, double b, Func<double, double, double> f, Delegate del, double x1)
         {
             double temp = 0;
 
             for (int i = 0; i < nodesAmount; i++)
             {
-                temp += weights[i] * f(0.5 * ((a + b) + (b - a) * nodes[i]), x1);
+                temp += weights[i] * f(0.5 * ((a + b) + (b - a) * nodes[i]), x1) * (double)del.DynamicInvoke(0.5 * ((a + b) + (b - a) * nodes[i]));
             }
             temp *= (0.5 * (b - a));
 

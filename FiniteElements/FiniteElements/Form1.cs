@@ -46,20 +46,20 @@ namespace MyNamespace
             GenerateGrid(1, dim, dataGridView7, 75);
         }
 
-        void CreateSystem(string[,] funcs, ref Delegate[,] syst)
+        void CreateSystem(DataGridView dataGrid, ref FuncMatrix syst)
         {
-            syst = new Delegate[funcs.GetLength(0),funcs.GetLength(1)];            
+                    
 
             CSharpCodeProvider provider = new CSharpCodeProvider();
             CompilerParameters parameters = new CompilerParameters();
             parameters.GenerateInMemory = true;
             parameters.ReferencedAssemblies.Add("System.dll");
             CompilerResults results;
-            for (int i = 0; i < funcs.GetLength(0); i++)
+            for (int i = 0; i < dataGrid.Rows.Count; i++)
             {
-                for (int j = 0; j < funcs.GetLength(1); j++)
+                for (int j = 0; j < dataGrid.Columns.Count; j++)
                 {
-                    results = provider.CompileAssemblyFromSource(parameters, begin + funcs[i, j] + end);
+                    results = provider.CompileAssemblyFromSource(parameters, begin + dataGrid[j,i].Value.ToString() + end);
                     var cls = results.CompiledAssembly.GetType("MyNamespace.LambdaCreator");
                     var method = cls.GetMethod("Create", BindingFlags.Static | BindingFlags.Public);
                     var del = (method.Invoke(null, null) as Delegate);
@@ -106,20 +106,14 @@ namespace MyNamespace
             }
         }
 
-        void ReadFromGridToMatrix(DataGridView dataGrid, out Matrix matrix)
+        void ReadFromGridToMatrix(DataGridView dataGrid, out FuncMatrix matrix)
         {
             int cols = dataGrid.Columns.Count;
             int rows = dataGrid.Rows.Count;
 
-            matrix = new Matrix(rows, cols);
+            matrix = new FuncMatrix(rows, cols);
 
-            for (int i = 0; i < cols; i++)
-            {
-                for (int j = 0; j < rows; j++)
-                {
-                    matrix[i, j] = double.Parse(dataGrid[i, j].Value.ToString());
-                }
-            }
+            CreateSystem(dataGrid, ref matrix);
         }
 
         void ReadFromGridToVector(DataGridView dataGrid, out Vector vector)
@@ -142,12 +136,14 @@ namespace MyNamespace
             double a = double.Parse(textBox3.Text);
             double b = double.Parse(textBox4.Text);
 
-            Matrix P, Q;
+            FuncMatrix P, Q;
             ReadFromGridToMatrix(dataGridView1, out P);
             ReadFromGridToMatrix(dataGridView2, out Q);
 
-            Vector u_a, u_b, f;
-            ReadFromGridToVector(dataGridView3, out f);
+            FuncMatrix f;
+            ReadFromGridToMatrix(dataGridView3, out f);
+
+            Vector u_a, u_b;            
             ReadFromGridToVector(dataGridView6, out u_a);
             ReadFromGridToVector(dataGridView7, out u_b);
 

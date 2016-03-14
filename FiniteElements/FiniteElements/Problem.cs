@@ -15,17 +15,17 @@ namespace FiniteElements
         public Vector u_a { get; private set; }
         public Vector u_b { get; private set; }
 
-        public Matrix P { get; private set; }
-        public Matrix Q { get; private set; }
+        public FuncMatrix P { get; private set; }
+        public FuncMatrix Q { get; private set; }
 
-        public Vector f { get; private set; }
+        public FuncMatrix f { get; private set; }
 
         public Problem()
         {
 
         }
 
-        public Problem(int s, double a, double b, Vector u_a, Vector u_b, Matrix p, Matrix q, Vector f)
+        public Problem(int s, double a, double b, Vector u_a, Vector u_b, FuncMatrix p, FuncMatrix q, FuncMatrix f)
         {
             this.s = s;
 

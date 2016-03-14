@@ -65,9 +65,7 @@ namespace FiniteElements
             {
                 for (int j = 0; j < p.s; j++)
                 {
-                    temp = p.P[i, j] / h;
-                    // if P is not constant, but P(x)
-                    // temp = GaussIntegrator.Integrate(X[k-1], X[k], baseFunctionFake, P[i,j], X[k-1])/(h*h);
+                    temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunctionFake, p.P[i, j], X[k - 1]) / (h * h);
                     m[i, j] = m[i + p.s, j + p.s] = temp;
                     m[i, j + p.s] = m[i + p.s, j] = -temp;
                 }
@@ -85,9 +83,7 @@ namespace FiniteElements
             {
                 for (int j = 0; j < p.s; j++)
                 {
-                    temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunction, X[k - 1]) * p.Q[i, j] / (h * h);
-                    // if Q is not constant, but Q(x)
-                    // temp = GaussIntegrator.Integrate(X[k-1], X[k], baseFunction, Q[i,j], X[k-1])/(h*h);
+                    temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunction, p.Q[i, j], X[k - 1]) / (h * h);
                     m[i, j] = m[i + p.s, j + p.s] = temp;
                     m[i, j + p.s] = m[i + p.s, j] = -temp;
                 }

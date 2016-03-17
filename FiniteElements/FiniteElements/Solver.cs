@@ -16,8 +16,8 @@ namespace FiniteElements
 
         public Vector X { get; private set; }
 
-        public Matrix GlobalMatrix { get; private set; }
-        Matrix GlobalVector;
+        Matrix GlobalMatrix;
+        Vector GlobalVector;
         
         public Solver()
         {
@@ -59,6 +59,7 @@ namespace FiniteElements
         {
             return (x - x1);
         }
+
         public Matrix GetLocalStiffnessMatrix(int k)
         {
             Matrix m = new Matrix(2 * p.s, 2 * p.s);
@@ -95,32 +96,66 @@ namespace FiniteElements
             return m;
         }
 
-
-        public Vector RigthPart(int k)
+        public Vector GetLocalVector(int k)
         {
-            Vector v = new Vector(2*p.s);
+            Vector v = new Vector(2 * p.s);
             double temp;
+
             for (int i = 0; i < p.s; i++)
             {
-                temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunctionVec, p.f[i,0], X[k - 1]);
-                v[i] = -temp/h;
-                v[i + p.s] = temp/h;
+                temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunctionVec, p.f[i, 0], X[k - 1]);
+                v[i] = -temp / h;
+                v[i + p.s] = temp / h;
             }
+
             return v;
         }
 
-        public void FillGlobalMatrix()
+        public Matrix GetGlobalMatrix()
         {
-                        
+            if (GlobalMatrix == null)
+                FillSystem();
+            return GlobalMatrix;
         }
-        public void FillSystem()
-        {
 
+        void FillSystem()
+        {
+            GlobalMatrix = new Matrix(p.s * (n - 1), p.s * (n - 1));
+            GlobalVector = new Vector(p.s * (n - 1));
+
+            int shift;
+            Matrix stiffness, weight;
+            Vector b;
+
+            for (int k = 2; k < n; k++)
+            {
+                shift = (k - 2) * p.s;
+
+                stiffness = GetLocalStiffnessMatrix(k);
+                weight = GetLocalWeightMatrix(k);
+                b = GetLocalVector(k);
+
+                for (int i = 0; i < 2 * p.s; i++)
+                {
+                    for (int j = 0; j < 2 * p.s; j++)
+                    {
+                        GlobalMatrix[i + shift, j + shift] += stiffness[i, j] + weight[i, j];
+                    }
+                    GlobalVector[i + shift] += b[i];
+                }
+            }
         }
 
         public void Solve()
         {
 
+        }
+
+        internal void Clear()
+        {
+            GlobalMatrix = null;
+            GlobalVector = null;
+            s = null;
         }
     }
 }

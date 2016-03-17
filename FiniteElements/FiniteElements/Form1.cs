@@ -166,8 +166,6 @@ namespace MyNamespace
         {
             ReadFromMatrixToGrid(solver.GetLocalStiffnessMatrix((int)numericUpDown3.Value), dataGridView4);
             ReadFromMatrixToGrid(solver.GetLocalWeightMatrix((int)numericUpDown3.Value), dataGridView5);
-
-            var temp = solver.RigthPart((int) numericUpDown3.Value);
         }
 
         // on text changed generate empty grids
@@ -190,6 +188,7 @@ namespace MyNamespace
             {
                 solver.n = (int)numericUpDown2.Value;
                 solver.CreateDivision();
+                solver.Clear();
 
                 ClearForDivision();
             }

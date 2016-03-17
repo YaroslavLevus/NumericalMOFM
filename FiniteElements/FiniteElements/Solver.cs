@@ -55,7 +55,10 @@ namespace FiniteElements
         {
             return 1;
         }
-                        
+        double baseFunctionVec(double x, double x1)
+        {
+            return (x - x1);
+        }
         public Matrix GetLocalStiffnessMatrix(int k)
         {
             Matrix m = new Matrix(2 * p.s, 2 * p.s);
@@ -66,8 +69,8 @@ namespace FiniteElements
                 for (int j = 0; j < p.s; j++)
                 {
                     temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunctionFake, p.P[i, j], X[k - 1]) / (h * h);
-                    m[i, j] = m[i + p.s, j + p.s] = temp;
-                    m[i, j + p.s] = m[i + p.s, j] = -temp;
+                    m[j,i] = m[j + p.s, i + p.s] = temp;
+                    m[j, i + p.s] = m[j + p.s, i] = -temp;
                 }
             }
 
@@ -84,13 +87,27 @@ namespace FiniteElements
                 for (int j = 0; j < p.s; j++)
                 {
                     temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunction, p.Q[i, j], X[k - 1]) / (h * h);
-                    m[i, j] = m[i + p.s, j + p.s] = temp;
-                    m[i, j + p.s] = m[i + p.s, j] = -temp;
+                    m[j, i] = m[j + p.s, i + p.s] = temp;
+                    m[j, i + p.s] = m[j + p.s, i] = -temp;
                 }
             }
 
             return m;
-        }        
+        }
+
+
+        public Vector RigthPart(int k)
+        {
+            Vector v = new Vector(2*p.s);
+            double temp;
+            for (int i = 0; i < p.s; i++)
+            {
+                temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunctionVec, p.f[i,0], X[k - 1]);
+                v[i] = -temp/h;
+                v[i + p.s] = temp/h;
+            }
+            return v;
+        }
 
         public void FillGlobalMatrix()
         {

@@ -1,21 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
 using System.Reflection;
+using System.Collections.Generic;
+using ZedGraph;
 
 namespace FiniteElements
 {
     public partial class Form1 : Form
     {
         Solver solver;
+
+        List<Color> ColourList = new List<Color>
+        {
+            Color.LimeGreen,
+            Color.DodgerBlue,
+            Color.OrangeRed,
+            Color.DarkViolet,
+            Color.DeepPink,
+            Color.DeepSkyBlue,
+            Color.Orange,
+            Color.Silver
+        };
 
         #region function template
         private static string begin = @"using System;
@@ -47,9 +56,7 @@ namespace MyNamespace
         }
 
         void CreateSystem(DataGridView dataGrid, ref FuncMatrix syst)
-        {
-                    
-
+        {  
             CSharpCodeProvider provider = new CSharpCodeProvider();
             CompilerParameters parameters = new CompilerParameters();
             parameters.GenerateInMemory = true;
@@ -59,7 +66,7 @@ namespace MyNamespace
             {
                 for (int j = 0; j < dataGrid.Columns.Count; j++)
                 {
-                    results = provider.CompileAssemblyFromSource(parameters, begin + dataGrid[j,i].Value.ToString() + end);
+                    results = provider.CompileAssemblyFromSource(parameters, begin + dataGrid[j, i].Value.ToString() + end);
                     var cls = results.CompiledAssembly.GetType("MyNamespace.LambdaCreator");
                     var method = cls.GetMethod("Create", BindingFlags.Static | BindingFlags.Public);
                     var del = (method.Invoke(null, null) as Delegate);
@@ -80,6 +87,7 @@ namespace MyNamespace
                 column.Width = columnWidth;
                 dataGrid.Columns.Add(column);
             }
+
             for (int i = 0; i < dimY; i++)
             {
                 dataGrid.Rows.Add(new DataGridViewRow());
@@ -92,7 +100,6 @@ namespace MyNamespace
                     }
                 }
             }
-
         }
 
         void ReadFromMatrixToGrid(Matrix matrix, DataGridView dataGrid)
@@ -101,7 +108,7 @@ namespace MyNamespace
             {
                 for (int j = 0; j < matrix.NRows; j++)
                 {
-                    dataGrid[i, j].Value = matrix[i, j];
+                    dataGrid[i, j].Value = matrix[j, i];
                 }
             }
         }
@@ -125,6 +132,14 @@ namespace MyNamespace
             for (int j = 0; j < rows; j++)
             {
                 vector[j] = double.Parse(dataGrid[0, j].Value.ToString());
+            }
+        }
+
+        void ReadFromVectorToGrid(Vector vector, DataGridView dataGrid)
+        {
+            for (int j = 0; j < vector.N; j++)
+            {
+                dataGrid[0, j].Value = vector[j];
             }
         }
 
@@ -158,6 +173,9 @@ namespace MyNamespace
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView4, 75, false);
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView5, 75, false);
 
+            GenerateGrid((solver.n - 1) * solver.p.s, (solver.n - 1) * solver.p.s, dataGridView8, 75, false);
+            GenerateGrid(1, (solver.n - 1) * solver.p.s, dataGridView9, 75, false);
+
             numericUpDown3.Maximum = solver.n;
         }
 
@@ -166,6 +184,12 @@ namespace MyNamespace
         {
             ReadFromMatrixToGrid(solver.GetLocalStiffnessMatrix((int)numericUpDown3.Value), dataGridView4);
             ReadFromMatrixToGrid(solver.GetLocalWeightMatrix((int)numericUpDown3.Value), dataGridView5);
+        }
+        // compute and show global matrix and vector
+        private void button4_Click(object sender, EventArgs e)
+        {
+            ReadFromMatrixToGrid(solver.GetGlobalMatrix(), dataGridView8);
+            ReadFromVectorToGrid(solver.GetGlobalVector(), dataGridView9);
         }
 
         // on text changed generate empty grids
@@ -179,7 +203,7 @@ namespace MyNamespace
             GenerateGrid(1, dim, dataGridView6, 75);
             GenerateGrid(1, dim, dataGridView7, 75);
 
-            ClearForDimension();
+            ClearFormForDimension();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -187,14 +211,14 @@ namespace MyNamespace
             if (solver != null)
             {
                 solver.n = (int)numericUpDown2.Value;
-                solver.CreateDivision();
+
                 solver.Clear();
 
-                ClearForDivision();
+                ClearFormForDivision();
             }
         }
 
-        void ClearForDimension()
+        void ClearFormForDimension()
         {
             dataGridView4.Rows.Clear();
             dataGridView4.Columns.Clear();
@@ -202,8 +226,13 @@ namespace MyNamespace
             dataGridView5.Columns.Clear();
 
             // in future: clear tabs "global matrix" and "solution"
+            dataGridView8.Rows.Clear();
+            dataGridView8.Columns.Clear();
+            dataGridView9.Rows.Clear();
+            dataGridView9.Columns.Clear();
+
         }
-        void ClearForDivision()
+        void ClearFormForDivision()
         {
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView4, 75, false);
             GenerateGrid(2 * solver.p.s, 2 * solver.p.s, dataGridView5, 75, false);
@@ -211,6 +240,36 @@ namespace MyNamespace
             numericUpDown3.Maximum = solver.n;
 
             // in future: clear tabs "global matrix" and "solution"
+
+            GenerateGrid((solver.n - 1) * solver.p.s, (solver.n - 1) * solver.p.s, dataGridView8, 75, false);
+            GenerateGrid(1, (solver.n - 1) * solver.p.s, dataGridView9, 75, false);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+
+        }
+        void DrawGraph()
+        {
+            GraphPane pane = new GraphPane();
+            pane = zedGraphControl1.GraphPane; 
+            
+            pane.CurveList.Clear();
+
+            PointPairList list = new PointPairList();
+
+            for (double i = solver.p.a; i <= solver.p.b; i += 0.05)
+            {
+                list.Add(i, 0);//interpolate
+            }
+
+            LineItem myCurve = pane.AddCurve("", list, Color.Orange, SymbolType.None);
+            pane.Title.Text = "Graph";
+            pane.XAxis.Title.Text = "x";
+            pane.YAxis.Title.Text = "u(x)";
+
+            zedGraphControl1.AxisChange();
+            zedGraphControl1.Invalidate();             
         }
     }
 }

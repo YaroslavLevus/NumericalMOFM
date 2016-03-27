@@ -31,7 +31,7 @@ namespace FiniteElements
             CreateDivision();
         }
 
-        public void CreateDivision()
+        void CreateDivision()
         {
             double[] temp = new double[n + 1];
 
@@ -70,8 +70,8 @@ namespace FiniteElements
                 for (int j = 0; j < p.s; j++)
                 {
                     temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunctionFake, p.P[i, j], X[k - 1]) / (h * h);
-                    m[j,i] = m[j + p.s, i + p.s] = temp;
-                    m[j, i + p.s] = m[j + p.s, i] = -temp;
+                    m[i, j] = m[i + p.s, j + p.s] = temp;
+                    m[i + p.s, j] = m[i, j + p.s] = -temp;
                 }
             }
 
@@ -88,8 +88,8 @@ namespace FiniteElements
                 for (int j = 0; j < p.s; j++)
                 {
                     temp = GaussIntegrator.Integrate(X[k - 1], X[k], baseFunction, p.Q[i, j], X[k - 1]) / (h * h);
-                    m[j, i] = m[j + p.s, i + p.s] = temp;
-                    m[j, i + p.s] = m[j + p.s, i] = -temp;
+                    m[i, j] = m[i + p.s, j + p.s] = temp;
+                    m[i + p.s, j] = m[i, j + p.s] = -temp;
                 }
             }
 
@@ -114,8 +114,29 @@ namespace FiniteElements
         public Matrix GetGlobalMatrix()
         {
             if (GlobalMatrix == null)
+            {
                 FillSystem();
+            }
+
             return GlobalMatrix;
+        }
+        public Vector GetGlobalVector()
+        {
+            if (GlobalVector == null)
+            {
+                FillSystem();
+            }
+
+            return GlobalVector;
+        }
+
+        void IncludeLeftBoundaryValue(Matrix s,Matrix w, Vector b)
+        {
+
+        }
+        void IncludeRightBoundaryValue(Matrix s, Matrix w, Vector b)
+        {
+
         }
 
         void FillSystem()
@@ -126,6 +147,25 @@ namespace FiniteElements
             int shift;
             Matrix stiffness, weight;
             Vector b;
+
+            stiffness = GetLocalStiffnessMatrix(1);
+            weight = GetLocalWeightMatrix(1);
+            b = GetLocalVector(1);
+
+            for (int i = 0; i < p.s; i++)
+            {
+                for (int j = 0; j < p.s; j++)
+                {
+                    GlobalMatrix[i, j] += stiffness[i + p.s, j + p.s] + weight[i + p.s, j + p.s];
+                }
+
+                GlobalVector[i] += b[i + p.s];
+            }
+
+            if(!p.u_a.IsZero())
+            {
+                IncludeLeftBoundaryValue(stiffness,weight,b);
+            }
 
             for (int k = 2; k < n; k++)
             {
@@ -141,6 +181,7 @@ namespace FiniteElements
                     {
                         GlobalMatrix[i + shift, j + shift] += stiffness[i, j] + weight[i, j];
                     }
+
                     GlobalVector[i + shift] += b[i];
                 }
             }
@@ -148,11 +189,16 @@ namespace FiniteElements
 
         public void Solve()
         {
+            FillSystem();
 
+            var res = GaussSlaeSolver.Solve(GlobalMatrix, GlobalVector);
+
+            s = new Solution(X, res, p.u_a, p.u_b);
         }
 
         internal void Clear()
         {
+            CreateDivision();
             GlobalMatrix = null;
             GlobalVector = null;
             s = null;

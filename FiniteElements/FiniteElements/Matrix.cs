@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace FiniteElements
 {
@@ -127,15 +126,15 @@ namespace FiniteElements
             return m1 * (1 / k);
         }
 
-        public double this[int n, int m]
+        public double this[int r, int c]
         {
             get
             {
-                return this.matrix[n, m];
+                return this.matrix[r, c];
             }
             set
             {
-                this.matrix[n, m] = value;
+                this.matrix[r, c] = value;
             }
         }
 

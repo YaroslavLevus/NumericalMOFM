@@ -132,11 +132,23 @@ namespace FiniteElements
 
         void IncludeLeftBoundaryValue(Matrix s,Matrix w, Vector b)
         {
-
+            for (int i = 0; i < p.s; i++)
+            {
+                for (int j = 0; j < p.s; j++)
+                {
+                    GlobalVector[i] -= p.u_a[j] * (s[i + p.s, j] + w[i + p.s, j]);
+                }
+            }
         }
         void IncludeRightBoundaryValue(Matrix s, Matrix w, Vector b)
         {
-
+            for (int i = 0; i < p.s; i++)
+            {
+                for (int j = 0; j < p.s; j++)
+                {
+                    GlobalVector[GlobalVector.N - p.s + i] -= p.u_b[j] * (s[i, j + p.s] + w[i, j + p.s]);
+                }
+            }
         }
 
         void FillSystem()
@@ -164,7 +176,7 @@ namespace FiniteElements
 
             if(!p.u_a.IsZero())
             {
-                IncludeLeftBoundaryValue(stiffness,weight,b);
+                IncludeLeftBoundaryValue(stiffness, weight, b);
             }
 
             for (int k = 2; k < n; k++)
@@ -184,6 +196,25 @@ namespace FiniteElements
 
                     GlobalVector[i + shift] += b[i];
                 }
+            }
+
+            stiffness = GetLocalStiffnessMatrix(n);
+            weight = GetLocalWeightMatrix(n);
+            b = GetLocalVector(n);
+
+            for (int i = 0; i < p.s; i++)
+            {
+                for (int j = 0; j < p.s; j++)
+                {
+                    GlobalMatrix[GlobalMatrix.NRows - p.s + i, GlobalMatrix.NColumns - p.s + j] += stiffness[i, j] + weight[i, j];
+                }
+
+                GlobalVector[GlobalVector.N - p.s + i] += b[i];
+            }
+
+            if (!p.u_b.IsZero())
+            {
+                IncludeRightBoundaryValue(stiffness, weight, b);
             }
         }
 

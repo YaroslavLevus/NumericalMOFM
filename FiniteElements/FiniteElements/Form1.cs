@@ -247,7 +247,8 @@ namespace MyNamespace
 
         private void button5_Click(object sender, EventArgs e)
         {
-
+            solver.Solve();
+            DrawGraph();
         }
         void DrawGraph()
         {
@@ -256,14 +257,30 @@ namespace MyNamespace
             
             pane.CurveList.Clear();
 
-            PointPairList list = new PointPairList();
-
-            for (double i = solver.p.a; i <= solver.p.b; i += 0.05)
+            List<PointPairList> list = new List<PointPairList>();
+            for(int i=0;i<solver.p.s;i++)
             {
-                list.Add(i, 0);//interpolate
+                list.Add(new PointPairList());
             }
 
-            LineItem myCurve = pane.AddCurve("", list, Color.Orange, SymbolType.None);
+            //for (double i = solver.p.a; i <= solver.p.b; i += 0.05)
+            //{
+            //    list.Add(i, 0);//interpolate
+            //}
+            for(int i=0;i<solver.p.s;i++)
+            {
+                for(int j=0;j<=solver.n;j++)
+                {
+                    list[i].Add(solver.s.X[j], solver.s.U[j, i]);
+                }
+
+            }
+
+            List<LineItem> myCurves = new List<LineItem>();
+            for (int i = 0; i < solver.p.s; i++)
+            {
+                myCurves.Add(pane.AddCurve("", list[i], ColourList[i], SymbolType.None));
+            }
             pane.Title.Text = "Graph";
             pane.XAxis.Title.Text = "x";
             pane.YAxis.Title.Text = "u(x)";

@@ -57,7 +57,7 @@ namespace FiniteElements
 
             for (int i = 0; i < N; i++)
             {
-                if (Math.Abs(vector[i]) < 1e-8)
+                if (Math.Abs(vector[i]) > 1e-8)
                 {
                     flag = false;
                     break;

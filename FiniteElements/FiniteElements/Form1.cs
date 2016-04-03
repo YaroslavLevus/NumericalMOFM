@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.CSharp;
@@ -177,6 +176,10 @@ namespace MyNamespace
             GenerateGrid(1, (solver.n - 1) * solver.p.s, dataGridView9, 75, false);
 
             numericUpDown3.Maximum = solver.n;
+
+            GraphPane pane = zedGraphControl1.GraphPane;
+            pane.CurveList.Clear();
+            zedGraphControl1.Invalidate();
         }
 
         // compute and show appropriate local matrices
@@ -206,6 +209,7 @@ namespace MyNamespace
             ClearFormForDimension();
         }
 
+        // set new n
         private void button3_Click(object sender, EventArgs e)
         {
             if (solver != null)
@@ -224,13 +228,15 @@ namespace MyNamespace
             dataGridView4.Columns.Clear();
             dataGridView5.Rows.Clear();
             dataGridView5.Columns.Clear();
-
-            // in future: clear tabs "global matrix" and "solution"
+            
             dataGridView8.Rows.Clear();
             dataGridView8.Columns.Clear();
             dataGridView9.Rows.Clear();
             dataGridView9.Columns.Clear();
 
+            GraphPane pane = zedGraphControl1.GraphPane;
+            pane.CurveList.Clear();
+            zedGraphControl1.Invalidate();
         }
         void ClearFormForDivision()
         {
@@ -239,26 +245,30 @@ namespace MyNamespace
 
             numericUpDown3.Maximum = solver.n;
 
-            // in future: clear tabs "global matrix" and "solution"
-
             GenerateGrid((solver.n - 1) * solver.p.s, (solver.n - 1) * solver.p.s, dataGridView8, 75, false);
             GenerateGrid(1, (solver.n - 1) * solver.p.s, dataGridView9, 75, false);
+
+            GraphPane pane = zedGraphControl1.GraphPane;
+            pane.CurveList.Clear();
+            zedGraphControl1.Invalidate();
         }
 
+        // solve system and draw result
         private void button5_Click(object sender, EventArgs e)
         {
             solver.Solve();
             DrawGraph();
         }
+
         void DrawGraph()
         {
             GraphPane pane = new GraphPane();
-            pane = zedGraphControl1.GraphPane; 
-            
+            pane = zedGraphControl1.GraphPane;
+
             pane.CurveList.Clear();
 
             List<PointPairList> list = new List<PointPairList>();
-            for(int i=0;i<solver.p.s;i++)
+            for (int i = 0; i < solver.p.s; i++)
             {
                 list.Add(new PointPairList());
             }
@@ -267,26 +277,80 @@ namespace MyNamespace
             //{
             //    list.Add(i, 0);//interpolate
             //}
-            for(int i=0;i<solver.p.s;i++)
+            for (int i = 0; i < solver.p.s; i++)
             {
-                for(int j=0;j<=solver.n;j++)
+                for (int j = 0; j <= solver.n; j++)
                 {
                     list[i].Add(solver.s.X[j], solver.s.U[j, i]);
                 }
-
             }
 
             List<LineItem> myCurves = new List<LineItem>();
             for (int i = 0; i < solver.p.s; i++)
             {
                 myCurves.Add(pane.AddCurve("", list[i], ColourList[i], SymbolType.None));
+            } 
+            
+            if(checkBox1.Checked)
+            {
+                List<PointPairList> pointsList = new List<PointPairList>();
+
+                for (int i = 0; i < solver.p.s; i++)
+                {
+                    pointsList.Add(new PointPairList());
+                }
+
+                for (int i = 0; i < solver.p.s; i++)
+                {
+                    for (int j = 0; j <= solver.n; j++)
+                    {
+                        pointsList[i].Add(solver.s.X[j], solver.s.U[j, i]);
+                    }
+                }
+
+
+                List<LineItem> myPointCurves = new List<LineItem>();
+
+                for (int i = 0; i < solver.p.s; i++)
+                {
+                    myPointCurves.Add(pane.AddCurve("", pointsList[i], ColourList[i], SymbolType.Circle));
+                }
+
+                for (int i = 0; i < myPointCurves.Count; i++)
+                {
+                    myPointCurves[i].Line.IsVisible = false;
+                    myPointCurves[i].Symbol.Fill.Color = ColourList[i];
+                    myPointCurves[i].Symbol.Fill.Type = FillType.Solid;
+                }
             }
+
             pane.Title.Text = "Graph";
             pane.XAxis.Title.Text = "x";
             pane.YAxis.Title.Text = "u(x)";
 
+            pane.XAxis.MajorGrid.IsVisible = true;            
+            pane.XAxis.MajorGrid.DashOn = 10;
+            pane.XAxis.MajorGrid.DashOff = 5;
+            pane.YAxis.MajorGrid.IsVisible = true;
+            pane.YAxis.MajorGrid.DashOn = 10;
+            pane.YAxis.MajorGrid.DashOff = 5;
+            pane.YAxis.MinorGrid.IsVisible = true;
+            pane.YAxis.MinorGrid.DashOn = 1;
+            pane.YAxis.MinorGrid.DashOff = 2;
+            pane.XAxis.MinorGrid.IsVisible = true;
+            pane.XAxis.MinorGrid.DashOn = 1;
+            pane.XAxis.MinorGrid.DashOff = 2;
+
             zedGraphControl1.AxisChange();
             zedGraphControl1.Invalidate();             
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if(solver.s != null)
+            {
+                DrawGraph();
+            }
         }
     }
 }
